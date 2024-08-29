@@ -10,10 +10,15 @@ def analyse(img):
     # Processes the image in order to find edges and the black areas
 	img_kmeans, img_edges, img_global = ipl.image_edges(img_transformed, 3, 30, 5)
 	
+	cv2.imwrite('coffee.jpg', img_transformed)
+	cv2.imwrite('coffeek.jpg', img_kmeans)
+	cv2.imwrite('coffeee.jpg', img_edges)
+	cv2.imwrite('coffeeg.jpg', img_global)
+	
     # Checks if the image is has too much black
-	if not validate_image(img_global):
-		print("Error: Too dark image.")
-		return -1
+	#if not validate_image(img_global):
+	#	print("Error: Too dark image.")
+	#	return -1
 	
     # Finding the boundaries of the coffee machine
 	top, bottom, left, right = find_boundaries(img_edges)
@@ -25,20 +30,22 @@ def analyse(img):
 	l2 = left+int(0.72*(right-left))
 	r1 = left+int(0.78*(right-left))
 	r2 = right
-	
-    # Another validation method: 
-    # if top and bottom boundaries of the pot are the same, reject the image
-	if b == t:
-		print("Error: Can't define coffee pot boundaries.")
+
+	# Checking if boundary sizes make sense
+	if (bottom-top) < 370 or (bottom-top) > 430: 
+		print("Rejecting: bottom/top size is bad.")
+		return -1
+	if (right-left) < 280 or (right-left) > 320: 
+		print("Rejecting: right/left size is bad.")
 		return -1
 
     # Calculate the coffee level with the boundary data and the black/white image
 	coffee_coefficient = find_coffee_level(l1, l2, r1, r2, b, t, img_global)	
 	
 	# Normalize the coefficient value
-	coffee_coefficient = (coffee_coefficient-0.03)/(.85-0.03)
-	if coffee_coefficient > 1: coffee_coefficient = 1
-	elif coffee_coefficient < 0: coffee_coefficient = 0
+	#coffee_coefficient = (coffee_coefficient-0.03)/(.85-0.03)
+	#if coffee_coefficient > 1: coffee_coefficient = 1
+	#elif coffee_coefficient < 0: coffee_coefficient = 0
 	return coffee_coefficient
 
 

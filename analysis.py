@@ -35,5 +35,20 @@ def dataplot():
     plt.plot (coffee , 'b')
     plt.savefig(f"smooth.png")
 
+def do_daily_analysis():
+    hour_amounts = [0] * 24
+    file = open('brew_data.csv', 'r')
+    daily_data = file.read().splitlines()
+    total_brews = len(daily_data)
+    brew_amounts = []
+    for data_point in daily_data:
+        time_stamp, amount = data_point.split(',')
+        date = datetime.strptime(time_stamp[0:19], '%Y-%m-%d %H:%M:%S')
+        amount = int(amount)
+        brew_amounts.append(amount)
+        hour_amounts[date.hour] += amount
+    print(hour_amounts)
+    return
+
 
 if __name__ == '__main__': dataplot()

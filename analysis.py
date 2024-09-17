@@ -1,4 +1,7 @@
 from datetime import datetime
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas
 
 def do_monthly_analysis(month: int):
     hour_amounts = [0] * 24
@@ -17,6 +20,20 @@ def do_monthly_analysis(month: int):
     print("Kahvia keitettiin", len(brew_amounts), "kertaa")
     return
 
-# 
+def dataplot():
+    fname = "2024-08-28"
+    data = pandas.read_csv('data.csv')
+    coffee = data[data.columns[1]].to_numpy()
+    w = 10
+    avg_coffee = np.convolve(coffee, np.ones(w), 'valid') / w
+    times = data[data.columns[0]].to_numpy()
+    ttimes = []
+    for t in times:
+        ttimes.append(datetime.strptime(t[:19], '%Y-%m-%d %H:%M:%S'))
+    # print(ttimes)
+    F = plt.figure ()
+    plt.plot (coffee , 'b')
+    plt.savefig(f"smooth.png")
 
-if __name__ == '__main__': do_monthly_analysis(7)
+
+if __name__ == '__main__': dataplot()

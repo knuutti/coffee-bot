@@ -4,16 +4,19 @@ import cv2
 from time import sleep
 from datetime import datetime, timedelta
 import threading
+import subprocess
 from coffee_library import analyse
 
 def main():
 	
 	print("Bot running")
 
+	# Read the token file for connecting the bot
 	tg_token = ""
 	with open("tg_bot_token.txt") as tg_token_file:
 		tg_token = tg_token_file.readline()
 
+	# Returns the current status of the coffee machine
 	async def coffee(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 		print("Request from user")
 		#await update.message.reply_photo(photo=open('coffee.jpg', 'rb'))
@@ -22,86 +25,97 @@ def main():
 		if coffee:
 			await update.message.reply_text(coffee)    
 
-	# Debugging
+	# Debugging stuff
 	async def debug_info(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 		if update.message.from_user.username == "eknutars":
-			# await update.message.reply_text(subprocess.getoutput("ifconfig"))
+			await update.message.reply_text(subprocess.getoutput("ifconfig"))
 			await update.message.reply_photo(photo=open('coffee.jpg', 'rb'))
+
+	# Return graph of the day
+	async def day_graph(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+		await update.message.reply_photo(photo=open('day_graph.jpg', 'rb'))
 		
-	x = threading.Thread(target=threading_function)
+	x = threading.Thread(target=main_thread)
 	x.start()
 
 	app = ApplicationBuilder().token(tg_token).build()
 	app.add_handler(CommandHandler("kahvia", coffee))
 	app.add_handler(CommandHandler("debug", debug_info))
+	app.add_handler(CommandHandler("graph", day_graph))
 	app.run_polling(allowed_updates=Update.ALL_TYPES)
 
 
 	
 
-def threading_function():
+def main_thread():
 	
-	prevs = [0,0,0]
+	history = []
+	coffee_max = 0
+
+	frequency = 5 # time in seconds of one update cycle
+
 	is_brewing = False
 	brew_time = None
-	brew_reset = True
+	brew_reset = True 
 	cups = 10
 	reset_data = False
 
 	while True:
 
-		start_time = datetime.now()
-		reset_data = clear_data(start_time, reset_data) # clear raw data at midnight
+		time = datetime.now()
+		reset_data = clear_data(time, reset_data) # clear raw data at midnight
 
 		img = get_image() # read image from the capture device
 		coffee_level = analyse(img) # analyse the image and return the coffee level
 
-		# Post new data point
-		if coffee_level > 0:
+		if coffee_level != -1:
 
-			if not brew_reset and coffee_level < .2:
+			# Update the history for moving average
+			if not len(history):
+				history = 10 * [coffee_level]
+			else:
+				history.pop(0)
+				history.append(coffee_level)
+
+			# Using moving average to reduce noise in the input signal
+			raw_level = coffee_level
+			coffee_level = sum(history)/len(history)
+
+			# Value gets below zero level threshold -> able to start brewing again
+			if not brew_reset and coffee_level < .15:
 				brew_reset = True
+				cups = 0
+				coffee_max = 0
 
-			# If counter reaches 0 at one point, random errors won't affect the output
-			if cups > 0 or coffee_level > 0.15:
-				if coffee_level < 0.15: cups = 0
-				elif coffee_level < 0.2: cups = 1
-				elif coffee_level < 0.25: cups = 2
-				elif coffee_level < 0.3: cups = 3
-				elif coffee_level < 0.35: cups = 4
-				elif coffee_level < 0.4: cups = 5
-				elif coffee_level < 0.5: cups = 6
-				elif coffee_level < 0.6: cups = 7
-				elif coffee_level < 0.7: cups = 8
-				elif coffee_level < 0.8: cups = 9
-				else: cups = 10
+			# Value gets above the brew threshold -> start brewing
+			if brew_reset and coffee_level > .2:
+				brew_reset = False
+				is_brewing = True
+				brew_time = time
 
+			# State: brewing or has finished brewing
+			if not brew_reset:
+
+				# Updating the amount of cups in the pot
+				cups = get_cups(coffee_level)
+
+				# Updating local max
+				if coffee_level > coffee_max:
+					coffee_max = coffee_level
+
+				# Check if finished brewing
+				if history[-1] - history[0] < 0.05 and is_brewing:
+					is_brewing = False
+					write_data('brew_data.csv', 'a', brew_time, get_cups(coffee_max))
 			
 			update_telegram_message(cups, brew_time, is_brewing)
-			
-			print("Coffee level:", coffee_level)
+			write_data('data.csv', 'a', time, coffee_level)
+			write_data('raw_data.csv', 'a', time, raw_level) # should be removed at some point
 
-			data_file = open('data.csv', 'a')
-			data_file.write(str(start_time)+","+str(coffee_level)+"\n")
-			data_file.close()
-
-			prevs[0],prevs[1],prevs[2] = prevs[1],prevs[2],coffee_level
-
-			if prevs[1]-prevs[0]>.02 and prevs[2]-prevs[1]>.02 and brew_reset and coffee_level > .2:
-				is_brewing = True
-				brew_reset = False
-				brew_time = start_time
-			elif prevs[1]-prevs[0]<.02 and prevs[2]-prevs[1]<.02:
-				if is_brewing:
-					is_brewing = False
-					# Update brew time as current time
-					brew_time = datetime.now()
-					data_file = open('brew_data.csv', 'a')
-					data_file.write(str(brew_time)+","+str(cups)+"\n")
-					data_file.close()
-
-		
-		sleep(15-(datetime.now()-start_time).total_seconds())
+		# Updates every N seconds
+		process_time = (datetime.now() - time).total_seconds()
+		if process_time < frequency:
+			sleep(frequency - process_time)
 
 
 def get_image():
@@ -111,6 +125,26 @@ def get_image():
 	_,img = c.read()
 	c.release()
 	return img
+
+def get_cups(coffee_level: float):
+	cups = 10
+	if coffee_level < 0.15: cups = 0
+	elif coffee_level < 0.2: cups = 1
+	elif coffee_level < 0.25: cups = 2
+	elif coffee_level < 0.3: cups = 3
+	elif coffee_level < 0.35: cups = 4
+	elif coffee_level < 0.4: cups = 5
+	elif coffee_level < 0.5: cups = 6
+	elif coffee_level < 0.6: cups = 7
+	elif coffee_level < 0.7: cups = 8
+	elif coffee_level < 0.8: cups = 9
+	return cups
+
+def write_data(fname, mode, time, value):
+	data_file = open(fname, mode)
+	data_file.write(str(time) + "," + str(value) + "\n")
+	data_file.close()
+	return None
 
 def update_telegram_message(cups, brew_time, is_brewing):
 	msg = "Kiltiksellä ei ole kahvia"

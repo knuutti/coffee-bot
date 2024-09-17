@@ -2,6 +2,7 @@ from datetime import datetime
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas
+import matplotlib.dates as mdates
 
 def do_monthly_analysis(month: int):
     hour_amounts = [0] * 24
@@ -20,20 +21,30 @@ def do_monthly_analysis(month: int):
     print("Kahvia keitettiin", len(brew_amounts), "kertaa")
     return
 
-def dataplot():
-    fname = "2024-08-28"
-    data = pandas.read_csv('data.csv')
+def day_graph():
+    data = pandas.read_csv('testdata.csv')
     coffee = data[data.columns[1]].to_numpy()
-    w = 10
-    avg_coffee = np.convolve(coffee, np.ones(w), 'valid') / w
     times = data[data.columns[0]].to_numpy()
+    hist = 10 * [coffee[0]]
     ttimes = []
+    ccoffee = []
     for t in times:
         ttimes.append(datetime.strptime(t[:19], '%Y-%m-%d %H:%M:%S'))
-    # print(ttimes)
-    F = plt.figure ()
-    plt.plot (coffee , 'b')
-    plt.savefig(f"smooth.png")
+    for c in coffee:
+        hist.pop(0)
+        hist.append(c)
+        ccoffee.append(sum(hist)/10)
+
+    plt.figure()
+    plt.gcf().autofmt_xdate()
+    plt.gca().xaxis.set_major_formatter(mdates.DateFormatter('%H:%M'))
+    plt.xlabel("time")
+    plt.ylabel("coffee level")
+    plt.plot (ttimes, ccoffee , 'b')
+    plt.title(f'Coffee data ({times[0][0:10]})')
+    plt.savefig("day_graph.png")
+
+    return None
 
 def do_daily_analysis():
     hour_amounts = [0] * 24
@@ -51,4 +62,5 @@ def do_daily_analysis():
     return
 
 
-if __name__ == '__main__': dataplot()
+if __name__ == '__main__':
+    day_graph()

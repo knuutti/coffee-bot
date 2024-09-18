@@ -1,5 +1,6 @@
 from datetime import datetime
 import matplotlib.pyplot as plt
+import matplotlib
 import numpy as np
 import pandas
 import matplotlib.dates as mdates
@@ -28,7 +29,7 @@ def day_graph():
     ttimes = []
     for t in times:
         ttimes.append(datetime.strptime(t[:19], '%Y-%m-%d %H:%M:%S'))
-
+    matplotlib.use('agg')
     plt.gcf().autofmt_xdate()
     plt.gca().xaxis.set_major_formatter(mdates.DateFormatter('%H:%M'))
     plt.xlabel("time")

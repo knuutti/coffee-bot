@@ -7,6 +7,7 @@ import threading
 import subprocess
 from coffee_library import analyse
 from analysis import day_graph
+from statistics import median
 
 def main():
 	
@@ -80,7 +81,8 @@ def main_thread():
 
 			# Using moving average to reduce noise in the input signal
 			raw_level = coffee_level
-			coffee_level = sum(history)/len(history)
+			# coffee_level = sum(history)/len(history)
+			coffee_level = median(history)
 
 			# Value gets below zero level threshold -> able to start brewing again
 			if not brew_reset and coffee_level < .15:

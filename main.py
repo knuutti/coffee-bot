@@ -34,7 +34,7 @@ def main():
 
 	# Return graph of the day
 	async def day_graph(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-		await update.message.reply_photo(photo=open('day_graph.jpg', 'rb'))
+		await update.message.reply_photo(photo=open('day_graph.png', 'rb'))
 		
 	x = threading.Thread(target=main_thread)
 	x.start()

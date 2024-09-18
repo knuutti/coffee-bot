@@ -6,6 +6,7 @@ from datetime import datetime, timedelta
 import threading
 import subprocess
 from coffee_library import analyse
+from analysis import day_graph
 
 def main():
 	
@@ -107,6 +108,8 @@ def main_thread():
 				if history[-1] - history[0] < 0.05 and is_brewing:
 					is_brewing = False
 					write_data('brew_data.csv', 'a', brew_time, get_cups(coffee_max))
+
+			day_graph()
 			
 			update_telegram_message(cups, brew_time, is_brewing)
 			write_data('data.csv', 'a', time, coffee_level)

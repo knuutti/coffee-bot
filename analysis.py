@@ -25,22 +25,15 @@ def day_graph():
     data = pandas.read_csv('data.csv')
     coffee = data[data.columns[1]].to_numpy()
     times = data[data.columns[0]].to_numpy()
-    hist = 10 * [coffee[0]]
     ttimes = []
-    ccoffee = []
     for t in times:
         ttimes.append(datetime.strptime(t[:19], '%Y-%m-%d %H:%M:%S'))
-    for c in coffee:
-        hist.pop(0)
-        hist.append(c)
-        ccoffee.append(sum(hist)/10)
 
-    plt.figure()
     plt.gcf().autofmt_xdate()
     plt.gca().xaxis.set_major_formatter(mdates.DateFormatter('%H:%M'))
     plt.xlabel("time")
     plt.ylabel("coffee level")
-    plt.plot (ttimes, ccoffee , 'b')
+    plt.plot (ttimes, coffee , 'b')
     plt.title(f'Coffee data ({times[0][0:10]})')
     plt.savefig("day_graph.png")
 

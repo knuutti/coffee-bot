@@ -54,7 +54,7 @@ def main_thread():
 	history = []
 	coffee_max = 0
 
-	frequency = 5 # time in seconds of one update cycle
+	frequency = 10 # time in seconds of one update cycle
 
 	is_brewing = False
 	brew_time = None

@@ -58,7 +58,7 @@ def main_thread():
 
 	is_brewing = False
 	brew_time = None
-	brew_reset = True 
+	brew_reset = False 
 	cups = 10
 	reset_data = False
 

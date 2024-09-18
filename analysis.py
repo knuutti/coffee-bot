@@ -22,7 +22,7 @@ def do_monthly_analysis(month: int):
     return
 
 def day_graph():
-    data = pandas.read_csv('testdata.csv')
+    data = pandas.read_csv('data.csv')
     coffee = data[data.columns[1]].to_numpy()
     times = data[data.columns[0]].to_numpy()
     hist = 10 * [coffee[0]]

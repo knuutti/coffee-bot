@@ -23,7 +23,9 @@ def do_monthly_analysis(month: int):
     return
 
 def day_graph():
-    if not len(open('data.csv', 'r').readline()): return
+    file = open('data.csv', 'r')
+    if len(file.read().splitlines()) < 2: return
+    file.close()
     data = pandas.read_csv('data.csv')
     coffee = data[data.columns[1]].to_numpy()
     times = data[data.columns[0]].to_numpy()

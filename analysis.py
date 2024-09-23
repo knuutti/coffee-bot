@@ -22,16 +22,29 @@ def do_monthly_analysis(month: int):
     print("Kahvia keitettiin", len(brew_amounts), "kertaa")
     return
 
-def day_graph():
+def update_day_graph(reset):
+
+    # Two data rows required for building the graph
     file = open('data.csv', 'r')
-    if len(file.read().splitlines()) < 2: return
+    if len(file.read().splitlines()) < 2: 
+        file.close()
+        return
     file.close()
+
+    # Read the data
     data = pandas.read_csv('data.csv')
     coffee = data[data.columns[1]].to_numpy()
     times = data[data.columns[0]].to_numpy()
+
+    # Convert time column from str to DateTime
     ttimes = []
     for t in times:
         ttimes.append(datetime.strptime(t[:19], '%Y-%m-%d %H:%M:%S'))
+
+    if reset:
+        plt.clf()
+
+    # Create the graph
     matplotlib.use('agg')
     plt.gcf().autofmt_xdate()
     plt.gca().xaxis.set_major_formatter(mdates.DateFormatter('%H:%M'))
@@ -41,7 +54,7 @@ def day_graph():
     plt.title(f'Coffee data ({times[0][0:10]})')
     plt.savefig("day_graph.png")
 
-    return None
+    return 
 
 def do_daily_analysis():
     hour_amounts = [0] * 24

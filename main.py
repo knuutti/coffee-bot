@@ -6,7 +6,7 @@ from datetime import datetime, timedelta
 import threading
 import subprocess
 from coffee_library import analyse
-from analysis import day_graph
+from analysis import update_day_graph
 from statistics import median
 
 def main():
@@ -111,7 +111,7 @@ def main_thread():
 					is_brewing = False
 					write_data('brew_data.csv', 'a', brew_time, get_cups(coffee_max))
 
-			day_graph()
+			update_day_graph()
 			
 			update_telegram_message(cups, brew_time, is_brewing)
 			write_data('data.csv', 'a', time, coffee_level)
@@ -185,6 +185,7 @@ def clear_data(time: datetime, reset_data):
 		data_file.close()
 		data_file = open('data.csv', 'w')
 		data_file.close()
+		update_telegram_message()
 		return True
 	elif time.hour == 1 and reset_data:
 		return False

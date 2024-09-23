@@ -111,7 +111,7 @@ def main_thread():
 					is_brewing = False
 					write_data('brew_data.csv', 'a', brew_time, get_cups(coffee_max))
 
-			update_day_graph()
+			update_day_graph(False)
 			
 			update_telegram_message(cups, brew_time, is_brewing)
 			write_data('data.csv', 'a', time, coffee_level)
@@ -185,7 +185,7 @@ def clear_data(time: datetime, reset_data):
 		data_file.close()
 		data_file = open('data.csv', 'w')
 		data_file.close()
-		update_telegram_message()
+		update_day_graph(True)
 		return True
 	elif time.hour == 1 and reset_data:
 		return False

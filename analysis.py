@@ -22,7 +22,7 @@ def do_monthly_analysis(month: int):
     print("Kahvia keitettiin", len(brew_amounts), "kertaa")
     return
 
-def update_day_graph(reset):
+def update_day_graph():
 
     # Two data rows required for building the graph
     file = open('data.csv', 'r')
@@ -41,11 +41,10 @@ def update_day_graph(reset):
     for t in times:
         ttimes.append(datetime.strptime(t[:19], '%Y-%m-%d %H:%M:%S'))
 
-    if reset:
-        plt.clf()
-
     # Create the graph
     matplotlib.use('agg')
+    plt.figure()
+    plt.clf()
     plt.gcf().autofmt_xdate()
     plt.gca().xaxis.set_major_formatter(mdates.DateFormatter('%H:%M'))
     plt.xlabel("time")

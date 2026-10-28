@@ -1,0 +1,9 @@
+opencv-python
+numpy
+pandas
+matplotlib
+python-telegram-bot>=20,<23
+
+# Only for notebooks/ and experiments/
+scikit-image
+requests

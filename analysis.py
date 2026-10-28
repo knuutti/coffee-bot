@@ -1,4 +1,5 @@
 from datetime import datetime
+import os
 import matplotlib.pyplot as plt
 import matplotlib
 import numpy as np
@@ -19,12 +20,14 @@ def do_monthly_analysis(month: int):
             brew_amounts.append(amount)
             hour_amounts[date.hour] += amount
     print(hour_amounts)
-    print("Kahvia keitettiin", len(brew_amounts), "kertaa")
+    print("Coffee was brewed", len(brew_amounts), "times")
     return
 
 def update_day_graph():
 
     # Two data rows required for building the graph
+    if not os.path.exists('data.csv'):
+        return
     file = open('data.csv', 'r')
     if len(file.read().splitlines()) < 2: 
         file.close()
@@ -32,7 +35,7 @@ def update_day_graph():
     file.close()
 
     # Read the data
-    data = pandas.read_csv('data.csv')
+    data = pandas.read_csv('data.csv', header=None) # the file has no header row
     coffee = data[data.columns[1]].to_numpy()
     times = data[data.columns[0]].to_numpy()
 
@@ -72,4 +75,4 @@ def do_daily_analysis():
 
 
 if __name__ == '__main__':
-    day_graph()
+    update_day_graph()

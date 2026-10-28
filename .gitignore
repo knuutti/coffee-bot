@@ -1,0 +1,21 @@
+# Secrets
+tg_bot_token.txt
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+env/
+
+# Runtime output written by main.py, coffee_library.py and analysis.py
+coffee.jpg
+coffeek.jpg
+coffeee.jpg
+coffeeg.jpg
+coffee_coefficient.txt
+/day_graph.png
+/data.csv
+/raw_data.csv
+/brew_data.csv
+/data/

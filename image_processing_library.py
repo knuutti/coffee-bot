@@ -8,6 +8,7 @@ def image_edges(img, clusters: int, threshold: float, size: int):
 	return img_kmeans, img_edges, img_global
 
 def transform_image(img):
+	# Setup-specific: rotation and crop are tuned to one camera position
 	rotation = -5
 	scale = 9.6
 	x = 0.46
@@ -51,7 +52,7 @@ def kmeans_process(img, k):
 	centers = np.uint8(centers)
 	
 	# Use arbitary colors for kmeans image
-	color_sums = [sum(color) for color in centers]
+	color_sums = [int(np.sum(color)) for color in centers] # np.sum avoids uint8 overflow
 	# new_colors = [0, 126, 255]
 	# for color in sorted(color_sums):
 	# 	centers[color_sums.index(color)] = [new_colors.pop(0)]

@@ -24,6 +24,7 @@ def analyse(img):
 	top, bottom, left, right = find_boundaries(img_edges)
 	
     # Using the boundary info for defining the boundaries of the coffee pot
+	# Setup-specific: pot position relative to the coffee maker in this camera view
 	t = top + int(0.54*(bottom-top))
 	b = top + int(0.83*(bottom-top))
 	l1 = (left+right)//2
@@ -32,6 +33,7 @@ def analyse(img):
 	r2 = right
 
 	# Checking if boundary sizes make sense
+	# Setup-specific: pixel limits depend on the camera distance and crop
 	if (bottom-top) < 370 or (bottom-top) > 430: 
 		print("Rejecting: bottom/top size is bad.")
 		return -1
@@ -70,21 +72,21 @@ def find_boundaries(img):
 	height, width = img.shape
 
 	for i in range(height):
-		if sum(img[i][int(0.2*width):int(0.8*width)]) >= 1:
+		if np.sum(img[i][int(0.2*width):int(0.8*width)]) >= 1:
 			top = i
 			break
 
 	for i in range(int(0.1*width),width):
-		if sum(img[0:int(0.2*height),i]) >= 1:
+		if np.sum(img[0:int(0.2*height),i]) >= 1:
 			left = i
 			break
 	for i in range(int(0.5*width),width):
-		if sum(img[0:int(0.4*height),i]) < 1:
+		if np.sum(img[0:int(0.4*height),i]) < 1:
 			right = i
 			break
 
 	for i in range(height-1, -1, -1):
-		if sum(img[i][int(0.2*width):int(0.5*width)]) >= 1:
+		if np.sum(img[i][int(0.2*width):int(0.5*width)]) >= 1:
 			bottom = i
 			break
 			
@@ -104,7 +106,7 @@ def find_coffee_level(l1, l2, r1, r2, b, t, img_global):
 				levels[i] = level
 				break
 	
-    # True level is the highest one (the other one may have reflections etc.)
+    # Use the lower coffee level, i.e. the larger row index (the other side may have reflections etc.)
 	coffee_level = max(levels)
 	
     # Calculating the coefficient (value in range 0-1) from the coffee level

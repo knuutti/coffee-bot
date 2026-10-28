@@ -1,6 +1,7 @@
 from telegram import Update
 from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
 import cv2
+import os
 from time import sleep
 from datetime import datetime, timedelta
 import threading
@@ -13,15 +14,18 @@ def main():
 	
 	print("Bot running")
 
-	# Read the token file for connecting the bot
-	tg_token = ""
-	with open("tg_bot_token.txt") as tg_token_file:
-		tg_token = tg_token_file.readline()
+	# Read the bot token from the environment, falling back to the token file
+	tg_token = os.environ.get("TELEGRAM_BOT_TOKEN", "").strip()
+	if not tg_token:
+		with open("tg_bot_token.txt") as tg_token_file:
+			tg_token = tg_token_file.readline().strip()
 
 	# Returns the current status of the coffee machine
 	async def coffee(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 		print("Request from user")
 		#await update.message.reply_photo(photo=open('coffee.jpg', 'rb'))
+		if not os.path.exists('coffee_coefficient.txt'):
+			return # no valid reading yet
 		with open('coffee_coefficient.txt') as coffee_file:
 			coffee = coffee_file.readline()
 		if coffee:
@@ -35,6 +39,8 @@ def main():
 
 	# Return graph of the day
 	async def day_graph(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+		if not os.path.exists('day_graph.png'):
+			return # no graph yet
 		await update.message.reply_photo(photo=open('day_graph.png', 'rb'))
 		
 	x = threading.Thread(target=main_thread)
@@ -176,6 +182,9 @@ def update_telegram_message(cups, brew_time, is_brewing):
 def clear_data(time: datetime, reset_data):
 	if time.hour == 0 and not reset_data:
 		new_file_name = str(time-timedelta(days=1))[0:10]
+		os.makedirs('data', exist_ok=True)
+		if not os.path.exists('data.csv'):
+			return True
 		data_file = open('data.csv', 'r')
 		archive_file = open(f'data/{new_file_name}.csv', 'w')
 		old_data = data_file.read().splitlines()
